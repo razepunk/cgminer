@@ -7443,10 +7443,12 @@ static bool setup_gbt_solo(CURL *curl, struct pool *pool)
 	valid_val = json_object_get(res_val, "isvalid");
 	if (!valid_val)
 		goto out;
-	if (!json_is_true(valid_val)) {
-		applog(LOG_ERR, "Bitcoin address %s is NOT valid", opt_btc_address);
-		goto out;
-	}
+	/*
+	* if (!json_is_true(valid_val)) {
+	*	applog(LOG_ERR, "Bitcoin address %s is NOT valid", opt_btc_address);
+	*	goto out;
+	* }
+	*/
 	applog(LOG_NOTICE, "Solo mining to valid address: %s", opt_btc_address);
 	ret = true;
 	address_to_pubkeyhash(pool->script_pubkey, opt_btc_address);
