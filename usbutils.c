@@ -1040,6 +1040,18 @@ static struct usb_find_devices find_dev[] = {
 		INTINFO(gek1_ints) },
 	{
 		.drv = DRIVER_gekko,
+		.name = "GSD",
+		.ident = IDENT_GSD,
+		.idVendor = 0x10c4,
+		.idProduct = 0xea60,
+		.iManufacturer = "Silicon Labs",
+		.iProduct = "TTbit Bitcoin Miner",
+		.config = 1,
+		.timeout = COMPAC_TIMEOUT_MS,
+		.latency = LATENCY_UNUSED,
+		INTINFO(gek1_ints) },
+	{
+		.drv = DRIVER_gekko,
 		.name = "GSE",
 		.ident = IDENT_GSE,
 		.idVendor = 0x10c4,
