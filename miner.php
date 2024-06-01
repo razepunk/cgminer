@@ -1,7 +1,7 @@
 <?php
 #
-# v42.15
-# Copyright 2011-2023 Kano
+# v42.16
+# Copyright 2011-2024 Kano
 # Licensed under the GNU General Public License version 3
 #
 session_start();
@@ -660,7 +660,7 @@ $gekkopage = array(
 			'GEN.GHS 5m=GH/s 5m||EDEVS.MHS 5m=MHS 5m',
 			'GEN.DAM=DiffAcc M||EDEVS.Difficulty Accepted=DiffAcc',
 			'EDEVS.Device Rejected%=DiffRej %',
-			'EDEVS.Hardware Errors=HW',
+			'EDEVS.Hardware Errors=DiffHW',
 			'NOTIFY.Last Not Well=Not Well'),
  'POOL' => array('Stratum URL=Pool', 'Status',
 			'GEN.DAM=DiffAcc M||Difficulty Accepted=DiffAcc',
@@ -727,15 +727,30 @@ function gekkochipestats($data)
 				$values['Serial'] = '';
 			}
 			$values['Chip'] = $i;
-			$values['ChipNonces'] = $values['Chip'.$i.'Nonces'];
-			$values['ChipDups'] = $values['Chip'.$i.'Dups'];
-			$cr = explode('/', $values['Chip'.$i.'Ranges']);
+
+			if (isset($values['Chip'.$i.'Nonces']))
+				$values['ChipNonces'] = $values['Chip'.$i.'Nonces'];
+			else
+				$values['ChipNonces'] = '';
+			if (isset($values['Chip'.$i.'Dups']))
+				$values['ChipDups'] = $values['Chip'.$i.'Dups'];
+			else
+				$values['ChipDups'] = '';
+			if (isset($values['Chip'.$i.'Ranges']))
+				$values['ChipRanges'] = $values['Chip'.$i.'Ranges'];
+			else
+				$values['ChipRanges'] = '';
+
+			$cr = explode('/', $values['ChipRanges']);
 			if (count($cr) > 6)
 				$values['ChipRangeTotal'] = $cr[6];
+			else
+				$values['ChipRangeTotal'] = '';
 			if (count($cr) > 7)
 				$values['ChipRangePercent'] = $cr[7];
+			else
+				$values['ChipRangePercent'] = '';
 			
-			$values['ChipRanges'] = $values['Chip'.$i.'Ranges'];
 			$values['ChipFreqSend'] = $values['Chip'.$i.'FreqSend'];
 			$values['ChipFreqReply'] = $values['Chip'.$i.'FreqReply'];
 
@@ -776,6 +791,12 @@ function gekkochipfmt($section, $name, $value, $when, $alldata, $warnclass,
 	if ($value == '0.00%')
 		$ret = ' ';
 	break;
+  case 'Temp':
+	if ($value == '-999')
+		$ret = ' ';
+	else
+		$ret = number_format(floatval($value), 2);
+	break;
  }
  return array($ret, $class);
 }
@@ -783,7 +804,7 @@ function gekkochipfmt($section, $name, $value, $when, $alldata, $warnclass,
 $gekkochipspage = array(
  'DATE' => null,
  'RIGS' => null,
- 'ESTATS' => array('ID', 'Serial', 'GHGHs', 'Chip', 'ChipNonces=Nonces',
+ 'ESTATS' => array('ID', 'Serial', 'Temp=TempC', 'GHGHs', 'Chip', 'ChipNonces=Nonces',
 			'ChipDups=Dups', 'ChipFreqSend=Freq MHz',
 			'ChipRangeTotal=Work', 'ChipRangePercent=Work%'
 			),

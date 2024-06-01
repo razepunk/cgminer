@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 Andrew Smith
+ * Copyright 2012-2024 Andrew Smith
  * Copyright 2013-2015 Con Kolivas <kernel@kolivas.org>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -79,6 +79,7 @@ static cgtimer_t usb11_cgt;
 #define HASHRATIO_TIMEOUT_MS 999
 #define BLOCKERUPTER_TIMEOUT_MS 999
 #define COMPAC_TIMEOUT_MS 999
+#define FLOW_TIMEOUT_MS 999
 
 /* The safety timeout we use, cancelling async transfers on windows that fail
  * to timeout on their own. */
@@ -99,6 +100,7 @@ static cgtimer_t usb11_cgt;
 #define HASHRATIO_TIMEOUT_MS 200
 #define BLOCKERUPTER_TIMEOUT_MS 300
 #define COMPAC_TIMEOUT_MS 300
+#define FLOW_TIMEOUT_MS 300
 #endif
 
 #define USB_EPS(_intx, _epinfosx) { \
@@ -204,6 +206,18 @@ static struct usb_intinfo bet_ints[] = {
 };
 #endif
 
+#ifdef USE_FLOW
+// CP2102N
+static struct usb_epinfo flow1_epinfos[] = {
+	{ LIBUSB_TRANSFER_TYPE_BULK,	64,	EPI(2), 0, 0 },
+	{ LIBUSB_TRANSFER_TYPE_BULK,	64,	EPO(2), 0, 0 }
+};
+
+static struct usb_intinfo flow1_ints[] = {
+	USB_EPS(0, flow1_epinfos)
+};
+#endif
+
 #ifdef USE_GEKKO
 // CP210X Devices
 static struct usb_epinfo gek1_epinfos[] = {
@@ -222,6 +236,32 @@ static struct usb_epinfo gek2_epinfos[] = {
 };
 static struct usb_intinfo gek2_ints[] = {
 	USB_EPS(0, gek2_epinfos)
+};
+
+// CP2105 dual ep0
+static struct usb_epinfo gek3a_epinfos[] = {
+	{ LIBUSB_TRANSFER_TYPE_BULK,	64,	EPI(1), 0, 0 },
+	{ LIBUSB_TRANSFER_TYPE_BULK,	64,	EPO(1), 0, 0 }
+};
+
+// CP2105 dual ep1
+static struct usb_epinfo gek3b_epinfos[] = {
+	{ LIBUSB_TRANSFER_TYPE_BULK,	32,	EPI(2), 0, 0 },
+	{ LIBUSB_TRANSFER_TYPE_BULK,	32,	EPO(2), 0, 0 }
+};
+
+static struct usb_intinfo gek3_ints[] = {
+	USB_EPS(0, gek3a_epinfos),
+	USB_EPS(1, gek3b_epinfos)
+};
+
+// BF Devices
+static struct usb_epinfo gekbf1_epinfos[] = {
+	{ LIBUSB_TRANSFER_TYPE_INTERRUPT,	64,	EPI(1), 0, 0 },
+	{ LIBUSB_TRANSFER_TYPE_INTERRUPT,	64,	EPO(1), 0, 0 }
+};
+static struct usb_intinfo gek4_ints[] = {
+	USB_EPS(0, gekbf1_epinfos)
 };
 
 #endif
@@ -977,6 +1017,22 @@ static struct usb_find_devices find_dev[] = {
 		INTINFO(bet_ints) },
 
 #endif
+#ifdef USE_FLOW
+	{
+		.drv = DRIVER_flow,
+		.name = "FLX",
+		.ident = IDENT_FLX,
+		.idVendor = 0x10c4,
+		.idProduct = 0xea60,
+//		.iManufacturer = "flow",
+		.iManufacturer = "Silicon Labs",
+//		.iProduct = "bzm2",
+		.iProduct = "VoltLink CP2102N USB to UART Bridge",
+		.config = 1,
+		.timeout = FLOW_TIMEOUT_MS,
+		.latency = LATENCY_UNUSED,
+		INTINFO(flow1_ints) },
+#endif
 #ifdef USE_GEKKO
 	{
 		.drv = DRIVER_gekko,
@@ -1098,6 +1154,30 @@ static struct usb_find_devices find_dev[] = {
 		.timeout = COMPAC_TIMEOUT_MS,
 		.latency = LATENCY_UNUSED,
 		INTINFO(gek2_ints) },
+	{
+		.drv = DRIVER_gekko,
+		.name = "GSA",
+		.ident = IDENT_GSA1,
+		.idVendor = 0x10c4,
+		.idProduct = 0xea70,
+		.iManufacturer = "Silicon Labs",
+		.iProduct = "GekkoScience Compac A1",
+		.config = 1,
+		.timeout = COMPAC_TIMEOUT_MS,
+		.latency = LATENCY_UNUSED,
+		INTINFO(gek3_ints) },
+	{
+		.drv = DRIVER_gekko,
+		.name = "GSK",
+		.ident = IDENT_GSK,
+		.idVendor = 0x04d8,
+		.idProduct = 0x00de,
+		.iManufacturer = "Microchip Technology Inc.",
+		.iProduct = "MCP2210 USB to SPI Master",
+		.config = 1,
+		.timeout = BITFURY_TIMEOUT_MS,
+		.latency = LATENCY_UNUSED,
+		INTINFO(gek4_ints) },
 #endif
 	{ DRIVER_MAX, NULL, 0, 0, 0, NULL, NULL, 0, 0, 0, 0, NULL }
 };
@@ -3356,10 +3436,19 @@ void usb_reset(struct cgpu_info *cgpu)
 	int pstate, err = 0;
 
 	DEVWLOCK(cgpu, pstate);
-	if (!cgpu->usbinfo.nodev) {
+	if (!cgpu->usbinfo.nodev)
+	{
 		err = libusb_reset_device(cgpu->usbdev->handle);
-		applog(LOG_WARNING, "%s %i attempted reset got err:(%d) %s",
-			cgpu->drv->name, cgpu->device_id, err, libusb_error_name(err));
+		if (err == LIBUSB_SUCCESS)
+		{
+			applog(LOG_WARNING, "%s %i reset succeess",
+				cgpu->drv->name, cgpu->device_id);
+		}
+		else
+		{
+			applog(LOG_WARNING, "%s %i attempted reset got err:(%d) %s",
+				cgpu->drv->name, cgpu->device_id, err, libusb_error_name(err));
+		}
 	}
 	if (NODEV(err))
 		release_cgpu(cgpu);
@@ -3457,18 +3546,28 @@ int _usb_read(struct cgpu_info *cgpu, int intinfo, int epinfo, char *buf, size_t
 		/* Attempt a usb reset for an error that will otherwise cause
 		 * this device to drop out provided we know the device still
 		 * might exist. */
-		if (err && err != LIBUSB_ERROR_TIMEOUT) {
+		if (err && err != LIBUSB_ERROR_TIMEOUT)
+		{
 			applog(LOG_WARNING, "%s %i %s usb read err:(%d) %s", cgpu->drv->name,
 			       cgpu->device_id, usb_cmdname(cmd), err, libusb_error_name(err));
-			if (err != LIBUSB_ERROR_NO_DEVICE && !tried_reset) {
+			if (err != LIBUSB_ERROR_NO_DEVICE && !tried_reset)
+			{
 				err = libusb_reset_device(usbdev->handle);
 				tried_reset = 1; // don't call reset twice in a row
-				applog(LOG_WARNING, "%s %i attempted reset got err:(%d) %s",
-				       cgpu->drv->name, cgpu->device_id, err, libusb_error_name(err));
+				if (err == LIBUSB_SUCCESS)
+				{
+					applog(LOG_WARNING, "%s %i reset succeess",
+						cgpu->drv->name, cgpu->device_id);
+				}
+				else
+				{
+					applog(LOG_WARNING, "%s %i attempted reset got err:(%d) %s",
+						cgpu->drv->name, cgpu->device_id, err, libusb_error_name(err));
+				}
 			}
-		} else {
-			tried_reset = 0;
 		}
+		else
+			tried_reset = 0;
 
 		if (NODEV(err))
 			goto out_noerrmsg;
@@ -3586,18 +3685,29 @@ int _usb_write(struct cgpu_info *cgpu, int intinfo, int epinfo, char *buf, size_
 
 		/* Unlike reads, even a timeout error is unrecoverable on
 		 * writes. */
-		if (err) {
+		if (err)
+		{
 			applog(LOG_WARNING, "%s %i %s usb write err:(%d) %s", cgpu->drv->name,
 			       cgpu->device_id, usb_cmdname(cmd), err, libusb_error_name(err));
-			if (err != LIBUSB_ERROR_NO_DEVICE && !tried_reset) {
+			if (err != LIBUSB_ERROR_NO_DEVICE && !tried_reset)
+			{
 				err = libusb_reset_device(usbdev->handle);
 				tried_reset = 1; // don't try reset twice in a row
-				applog(LOG_WARNING, "%s %i attempted reset got err:(%d) %s",
-				       cgpu->drv->name, cgpu->device_id, err, libusb_error_name(err));
+				if (err == LIBUSB_SUCCESS)
+				{
+					applog(LOG_WARNING, "%s %i reset succeess",
+						cgpu->drv->name, cgpu->device_id);
+				}
+				else
+				{
+					applog(LOG_WARNING, "%s %i attempted reset got err:(%d) %s",
+						cgpu->drv->name, cgpu->device_id, err, libusb_error_name(err));
+				}
 			}
-		} else {
-			tried_reset = 0;
 		}
+		else
+			tried_reset = 0;
+
 		if (err)
 			break;
 

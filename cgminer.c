@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2022 Andrew Smith
+ * Copyright 2011-2024 Andrew Smith
  * Copyright 2011-2018 Con Kolivas
  * Copyright 2011-2012 Luke Dashjr
  * Copyright 2010 Jeff Garzik
@@ -303,6 +303,13 @@ static char *opt_set_avalonm_freq;
 #ifdef USE_BLOCKERUPTER
 int opt_bet_clk = 0;
 #endif
+#ifdef USE_FLOW
+char *opt_flow_serial = NULL;
+int opt_flow_start_freq = 100;
+float opt_flow_step_freq = 5.0;
+float opt_flow_freq = 300;
+int opt_flow_tune = 0;
+#endif
 #ifdef USE_GEKKO
 char *opt_gekko_serial = NULL;
 bool opt_gekko_noboost = 0;
@@ -314,6 +321,8 @@ bool opt_gekko_gsh_detect = 0;
 bool opt_gekko_gsi_detect = 0;
 bool opt_gekko_gsf_detect = 0;
 bool opt_gekko_r909_detect = 0;
+bool opt_gekko_gsa1_detect = 0;
+bool opt_gekko_gsk_detect = 0;
 float opt_gekko_gsc_freq = 150;
 float opt_gekko_gsd_freq = 100;
 float opt_gekko_gse_freq = 150;
@@ -331,12 +340,16 @@ int opt_gekko_gsh_freq = 100;
 int opt_gekko_gsi_freq = 550;
 int opt_gekko_gsf_freq = 200;
 int opt_gekko_r909_freq = 450;
+int opt_gekko_gsa1_freq = 300;
+int opt_gekko_gsk_freq = 200;
 int opt_gekko_bauddiv = 0;
 int opt_gekko_gsh_vcore = 400;
 int opt_gekko_start_freq = 100;
 int opt_gekko_step_delay = 15;
 bool opt_gekko_mine2 = false; // gekko code ignores it
 int opt_gekko_tune2 = 0;
+int opt_gekko_gsa1_start_freq = 300;
+int opt_gekko_gsa1_corev = 300; // 0x3c
 #endif
 #ifdef USE_HASHRATIO
 #include "driver-hashratio.h"
@@ -1931,10 +1944,24 @@ static struct opt_table opt_config_table[] = {
                      opt_set_intval, opt_show_intval, &opt_bet_clk,
                      "Set Block Erupter clock"),
 #endif
+#ifdef USE_FLOW
+	OPT_WITH_ARG("--flow-serial",
+			 opt_set_charp, NULL, &opt_flow_serial,
+			 "Detect Flow Device by comma list of Serial Numbers"),
+	OPT_WITH_ARG("--flow-start-freq",
+		     set_int_0_to_9999, opt_show_intval, &opt_flow_start_freq,
+                     "Ramp start frequency MHz 25-500"),
+	OPT_WITH_ARG("--flow-step-freq",
+		     set_float_0_to_500, opt_show_intval, &opt_flow_step_freq,
+		     "Ramp frequency step MHz 1-100"),
+	OPT_WITH_ARG("--flow-tune",
+			set_int_0_to_9999, opt_show_intval, &opt_flow_tune,
+			"Tune up mine mins 30-9999, default 0=never"),
+#endif
 #ifdef USE_GEKKO
 	OPT_WITH_ARG("--gekko-serial",
 			 opt_set_charp, NULL, &opt_gekko_serial,
-			 "Detect GekkoScience Device by Serial Number"),
+			 "Detect GekkoScience Device by comma list of Serial Numbers"),
 	OPT_WITHOUT_ARG("--gekko-compac-detect",
 			 opt_set_bool, &opt_gekko_gsc_detect,
 			 "Detect GekkoScience Compac BM1384"),
@@ -1956,6 +1983,12 @@ static struct opt_table opt_config_table[] = {
 	OPT_WITHOUT_ARG("--gekko-r909-detect",
 			 opt_set_bool, &opt_gekko_r909_detect,
 			 "Detect GekkoScience Terminus R909 BM1397"),
+	OPT_WITHOUT_ARG("--gekko-compaca1-detect",
+			 opt_set_bool, &opt_gekko_gsa1_detect,
+			 "Detect GekkoScience CompacF BM1397"),
+	OPT_WITHOUT_ARG("--gekko-kbox-detect",
+			 opt_set_bool, &opt_gekko_gsk_detect,
+			 "Detect GekkoScience KBox BFCLAR"),
 	OPT_WITHOUT_ARG("--gekko-noboost",
 			 opt_set_bool, &opt_gekko_noboost,
 			 "Disable GekkoScience NewPac/R606/CompacF AsicBoost"),
@@ -1995,6 +2028,12 @@ static struct opt_table opt_config_table[] = {
 	OPT_WITH_ARG("--gekko-r909-freq",
 		     set_int_0_to_9999, opt_show_intval, &opt_gekko_r909_freq,
 		     "Set GekkoScience Terminus R909 BM1397 frequency in MHz, range 100-800"),
+	OPT_WITH_ARG("--gekko-compaca1-freq",
+		     set_int_0_to_9999, opt_show_intval, &opt_gekko_gsa1_freq,
+		     "Set GekkoScience CompacA1 BM1362 frequency in MHz, range 100-800"),
+	OPT_WITH_ARG("--gekko-kbox-freq",
+		     set_int_0_to_9999, opt_show_intval, &opt_gekko_gsk_freq,
+		     "Set GekkoScience KBox BFCLAR frequency in MHz, range 120-120"),
 	OPT_WITH_ARG("--gekko-start-freq",
 		     set_int_0_to_9999, opt_show_intval, &opt_gekko_start_freq,
                      "Ramp start frequency MHz 25-500"),
@@ -2009,6 +2048,12 @@ static struct opt_table opt_config_table[] = {
 	OPT_WITH_ARG("--gekko-tune2",
 			set_int_0_to_9999, opt_show_intval, &opt_gekko_tune2,
 			"Tune up mine2 mins 30-9999, default 0=never"),
+	OPT_WITH_ARG("--gekko-compaca1-start-freq",
+		     set_int_0_to_9999, opt_show_intval, &opt_gekko_gsa1_start_freq,
+                     "Ramp CompacA1 start frequency MHz 100-800"),
+	OPT_WITH_ARG("--gekko-compaca1-corev",
+		     set_int_0_to_9999, opt_show_intval, &opt_gekko_gsa1_corev,
+                     "CompacA1 core millivolts 0-500"),
 #endif
 #ifdef HAVE_LIBCURL
 	OPT_WITH_ARG("--btc-address",
@@ -7300,11 +7345,26 @@ static void *stratum_sthread(void *userdata)
 		sshare->id = swork_id++;
 		mutex_unlock(&sshare_lock);
 
-		if (pool->vmask) {
+		if (work->direct_vmask)
+		{
+			unsigned char bvb[4], bvhex[12];
+			int v;
+			for (v = 0; v < 4; v++)
+				bvb[v] = work->data[v] & ~(work->base_bv[v]);
+			__bin2hex(bvhex, bvb, 4);
+
+			snprintf(s, sizeof(s),
+				 "{\"params\": [\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"], \"id\": %d, \"method\": \"mining.submit\"}",
+				pool->rpc_user, work->job_id, nonce2hex, work->ntime, noncehex, bvhex, sshare->id);
+		}
+		else if (pool->vmask)
+		{
 			snprintf(s, sizeof(s),
 				 "{\"params\": [\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"], \"id\": %d, \"method\": \"mining.submit\"}",
 				pool->rpc_user, work->job_id, nonce2hex, work->ntime, noncehex, pool->vmask_002[work->micro_job_id], sshare->id);
-		} else {
+		}
+		else
+		{
 			snprintf(s, sizeof(s),
 				"{\"params\": [\"%s\", \"%s\", \"%s\", \"%s\", \"%s\"], \"id\": %d, \"method\": \"mining.submit\"}",
 				pool->rpc_user, work->job_id, nonce2hex, work->ntime, noncehex, sshare->id);

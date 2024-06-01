@@ -1,8 +1,8 @@
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 m4_define([v_maj], [4])
-m4_define([v_min], [12])
-m4_define([v_mic], [1])
+m4_define([v_min], [13])
+m4_define([v_mic], [0])
 ##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##--##
 m4_define([v_ver], [v_maj.v_min.v_mic])
 m4_define([lt_rev], m4_eval(v_maj + v_min))
@@ -386,19 +386,6 @@ fi
 AM_CONDITIONAL([HAS_BLOCKERUPTER], [test x$blockerupter = xyes])
 
 
-gekko="no"
-
-AC_ARG_ENABLE([gekko],
-	[AC_HELP_STRING([--enable-gekko],[Compile support for GekkoScience (default disabled)])],
-	[gekko=$enableval]
-	)
-if test "x$gekko" = xyes; then
-	AC_DEFINE([USE_GEKKO], [1], [Defined to 1 if GekkoScience support is wanted])
-	AC_DEFINE([USE_VMASK], [1], [Defined to 1 if version mask rolling is wanted])
-	drivercount=x$drivercount
-fi
-AM_CONDITIONAL([HAS_GEKKO], [test x$gekko = xyes])
-
 cointerra="no"
 
 AC_ARG_ENABLE([cointerra],
@@ -439,6 +426,31 @@ if test "x$drillbit" = xyes; then
 fi
 AM_CONDITIONAL([HAS_DRILLBIT], [test x$drillbit = xyes])
 
+flow="no"
+
+AC_ARG_ENABLE([flow],
+	[AC_HELP_STRING([--enable-flow],[Compile support for Flow (default disabled)])],
+	[flow=$enableval]
+	)
+if test "x$flow" = xyes; then
+	AC_DEFINE([USE_FLOW], [1], [Defined to 1 if Flow support is wanted])
+	AC_DEFINE([USE_VMASK], [1], [Defined to 1 if version mask rolling is wanted])
+	drivercount=x$drivercount
+fi
+AM_CONDITIONAL([HAS_FLOW], [test x$flow = xyes])
+
+gekko="no"
+
+AC_ARG_ENABLE([gekko],
+	[AC_HELP_STRING([--enable-gekko],[Compile support for GekkoScience (default disabled)])],
+	[gekko=$enableval]
+	)
+if test "x$gekko" = xyes; then
+	AC_DEFINE([USE_GEKKO], [1], [Defined to 1 if GekkoScience support is wanted])
+	AC_DEFINE([USE_VMASK], [1], [Defined to 1 if version mask rolling is wanted])
+	drivercount=x$drivercount
+fi
+AM_CONDITIONAL([HAS_GEKKO], [test x$gekko = xyes])
 
 hashfast="no"
 
@@ -598,7 +610,7 @@ fi
 
 
 #Add a new device to this list if it needs libusb, along with a no on the end.
-if test x$avalon$avalon2$avalon4$avalon7$avalon8$avalon_miner$bitforce$bitfury$blockerupter$gekko$modminer$bflsc$icarus$hashfast$hashratio$klondike$drillbit$cointerra$ants1$ants3 != xnononononononononononononononononononono; then
+if test x$avalon$avalon2$avalon4$avalon7$avalon8$avalon_miner$bitforce$bitfury$blockerupter$flow$gekko$modminer$bflsc$icarus$hashfast$hashratio$klondike$drillbit$cointerra$ants1$ants3 != xnonononononononononononononononononononono; then
 	want_usbutils=true
 else
 	want_usbutils=false
@@ -909,9 +921,9 @@ else
 fi
 
 if test "x$bitmain_soc" = xyes; then
-	echo "  Bitmain.ASICs......: Enabled"
+	echo "  Bitmain.ASICs........: Enabled"
 else
-	echo "  Bitmain.ASICs......: Disabled"
+	echo "  Bitmain.ASICs........: Disabled"
 fi
 
 
@@ -921,16 +933,22 @@ else
 	echo "  BlockErupter.ASICs...: Disabled"
 fi
 
-if test "x$gekko" = xyes; then
-	echo "  GekkoScience.ASICs...: Enabled"
-else
-	echo "  GekkoScience.ASICs...: Disabled"
-fi
-
 if test "x$cointerra" = xyes; then
 	echo "  Cointerra.ASICs......: Enabled"
 else
 	echo "  Cointerra.ASICs......: Disabled"
+fi
+
+if test "x$flow" = xyes; then
+	echo "  Flow.ASICs...........: Enabled"
+else
+	echo "  Flow.ASICs...........: Disabled"
+fi
+
+if test "x$gekko" = xyes; then
+	echo "  GekkoScience.ASICs...: Enabled"
+else
+	echo "  GekkoScience.ASICs...: Disabled"
 fi
 
 if test "x$sp10" = xyes; then
@@ -938,7 +956,6 @@ if test "x$sp10" = xyes; then
 else
 	echo "  Spond-sp10.ASICs.....: Disabled"
 fi
-
 
 if test "x$sp30" = xyes; then
 	echo "  Spond-sp30.ASICs.....: Enabled"
@@ -1001,7 +1018,7 @@ else
 fi
 
 #Add any new device to this, along with a no on the end of the test
-if test "x$avalon$avalon2$avalon4$avalon7$avalon8$avalon_miner$bab$bflsc$bitforce$bitfury$bitfury16$bitmain_soc$blockerupter$gekko$hashfast$hashratio$icarus$klondike$knc$modminer$drillbit$minion$cointerra$bitmine_A1$ants1$ants2$ants3$sp10$sp30$dragonmint_t1" = xnonononononononononononononononononononononononononononono; then
+if test "x$avalon$avalon2$avalon4$avalon7$avalon8$avalon_miner$bab$bflsc$bitforce$bitfury$bitfury16$bitmain_soc$blockerupter$flow$gekko$hashfast$hashratio$icarus$klondike$knc$modminer$drillbit$minion$cointerra$bitmine_A1$ants1$ants2$ants3$sp10$sp30$dragonmint_t1" = xnononononononononononononononononononononononononononononono; then
 	echo
 	AC_MSG_ERROR([No mining devices configured in])
 	echo

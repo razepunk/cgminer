@@ -1,3 +1,10 @@
+Version 4.13.0 - 1 June 2024
+
+- Add Beta Gekko linux support for BM1362 GSA1 CompacA1
+- Add a udev rule to 01-cgminer.rules for GSA1 CP2105
+- Update miner.php v42.16 for Gekko GSA1
+- Add direct block version modify support for BM1362
+
 Version 4.12.1 - 6th December 2022
 
 - README add an index

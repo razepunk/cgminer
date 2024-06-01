@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2022 Andrew Smith
+ * Copyright 2011-2024 Andrew Smith
  * Copyright 2011-2015,2018 Con Kolivas
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -32,7 +32,8 @@
 	defined(USE_MINION) || defined(USE_COINTERRA) || defined(USE_BITMINE_A1) || \
 	defined(USE_ANT_S1) || defined(USE_ANT_S2) || defined(USE_ANT_S3) || defined(USE_SP10) || \
 	defined(USE_SP30) || defined(USE_ICARUS) || defined(USE_HASHRATIO) || defined(USE_AVALON_MINER) || \
-	defined(USE_AVALON7) || defined(USE_AVALON8) || defined(USE_BITMAIN_SOC) || defined(USE_GEKKO)
+	defined(USE_AVALON7) || defined(USE_AVALON8) || defined(USE_BITMAIN_SOC) || defined(USE_GEKKO) \
+	|| defined(USE_FLOW)
 #define HAVE_AN_ASIC 1
 #endif
 
@@ -196,6 +197,9 @@ static const char *DEVICECODE = ""
 #endif
 #ifdef USE_DRAGONMINT_T1
 			"DT1 "
+#endif
+#ifdef USE_FLOW
+			"FLX "
 #endif
 #ifdef USE_GEKKO
 			"GSX "

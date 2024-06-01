@@ -273,6 +273,7 @@ static inline int fsync (int fd)
 	DRIVER_ADD_COMMAND(bitmineA1) \
 	DRIVER_ADD_COMMAND(blockerupter) \
 	DRIVER_ADD_COMMAND(cointerra) \
+	DRIVER_ADD_COMMAND(flow) \
 	DRIVER_ADD_COMMAND(gekko) \
 	DRIVER_ADD_COMMAND(dragonmintT1) \
 	DRIVER_ADD_COMMAND(hashfast) \
@@ -1055,6 +1056,13 @@ extern bool opt_worktime;
 extern char *opt_avalon_options;
 extern char *opt_bitburner_fury_options;
 #endif
+#ifdef USE_FLOW
+extern char *opt_flow_serial;
+extern int opt_flow_start_freq;
+extern float opt_flow_step_freq;
+extern float opt_flow_freq;
+extern int opt_flow_tune;
+#endif
 #ifdef USE_GEKKO
 extern char *opt_gekko_serial;
 extern bool opt_gekko_noboost;
@@ -1066,6 +1074,8 @@ extern bool opt_gekko_gsh_detect;
 extern bool opt_gekko_gsi_detect;
 extern bool opt_gekko_gsf_detect;
 extern bool opt_gekko_r909_detect;
+extern bool opt_gekko_gsa1_detect;
+extern bool opt_gekko_gsk_detect;
 extern float opt_gekko_gsc_freq;
 extern float opt_gekko_gsd_freq;
 extern float opt_gekko_gse_freq;
@@ -1078,10 +1088,14 @@ extern int opt_gekko_gsh_freq;
 extern int opt_gekko_gsi_freq;
 extern int opt_gekko_gsf_freq;
 extern int opt_gekko_r909_freq;
+extern int opt_gekko_gsa1_freq;
+extern int opt_gekko_gsk_freq;
 extern int opt_gekko_gsh_vcore;
 extern int opt_gekko_start_freq;
 extern int opt_gekko_step_delay;
 extern int opt_gekko_tune2;
+extern int opt_gekko_gsa1_start_freq;
+extern int opt_gekko_gsa1_corev;
 #endif
 #ifdef USE_KLONDIKE
 extern char *opt_klondike_options;
@@ -1483,6 +1497,8 @@ struct work {
 	unsigned char	hash[32];
 
 	uint16_t        micro_job_id;
+	bool		direct_vmask;
+	unsigned char	base_bv[4];
 
 	/* This is the diff the device is currently aiming for and must be
 	 * the minimum of work_difficulty & drv->max_diff */

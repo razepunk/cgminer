@@ -18,7 +18,7 @@ endif
 EXTRA_DIST	= example.conf linux-usb-cgminer \
 		  api-example.php miner.php	\
 		  API.class API.java api-example.c windows-build.txt \
-		  bitstreams/README API-README FPGA-README \
+		  mac-build.txt bitstreams/README API-README FPGA-README \
 		  bitforce-firmware-flash.c hexdump.c ASIC-README \
 		  01-cgminer.rules
 
@@ -214,6 +214,10 @@ endif
 
 if HAS_BLOCKERUPTER
 cgminer_SOURCES += driver-blockerupter.c driver-blockerupter.h
+endif
+
+if HAS_FLOW
+cgminer_SOURCES += driver-flow.c
 endif
 
 if HAS_GEKKO
