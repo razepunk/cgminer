@@ -40,6 +40,9 @@ How to cross compile cgminer using MXE on WSL or linux
 ** Update ubuntu packages with any recent updates:
  sudo apt upgrade -y
 
+** See the end for information about rebooting
+**  and updating your Ubuntu to a later version if required
+
 ** Install git that we use to download some of the required code.
 ** It may already be installed:
  sudo apt install git
@@ -103,3 +106,28 @@ from scratch next time you run it:
 
 Close all your Ubuntu windows, right-click the windows menu 'Ubuntu' app,
 select More->App Settings, then in the settings window use the 'Reset' button.
+
+------------------------------
+
+If Ubuntu ever requires a reboot, in the ubuntu window shutdown ubuntu with:
+
+ wsl.exe --terminate $WSL_DISTRO_NAME
+
+When you start Ubuntu from windows it will be the same as if it had rebooted
+
+------------------------------
+
+To check what release of Ubuntu you are running:
+
+ cat /etc/lsb-release
+
+To upgrade the Ubuntu release e.g. from v20.04 to v22.04
+you must first update it fully and reboot:
+
+ sudo apt update
+ sudo apt upgrade -y
+ wsl.exe --terminate $WSL_DISTRO_NAME
+
+Next after restarting, to do a release upgrade:
+
+ sudo do-release-upgrade
