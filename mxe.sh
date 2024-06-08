@@ -15,8 +15,10 @@ fi
 # install the packages required by mxe - may require sudo
 if [ "$1" = "a" ] ; then
  shift
- apt install -y build-essential libtool autotools-dev automake pkg-config p7zip-full autopoint \
-  bison flex libgdk-pixbuf2.0-dev gperf intltool libtool-bin lzip python ruby unzip "$@"
+ apt install -y build-essential libtool autotools-dev automake pkg-config \
+  p7zip-full autopoint bison flex libgdk-pixbuf2.0-dev gperf intltool \
+  libtool-bin lzip python-is-python3 python3-mako python3-packaging \
+  ruby unzip libssl-dev "$@"
  exit $?
 fi
 # download mxe

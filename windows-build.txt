@@ -40,8 +40,13 @@ How to cross compile cgminer using MXE on WSL or linux
 ** Update ubuntu packages with any recent updates:
  sudo apt upgrade -y
 
+** Check what version of Ubuntu you are running:
+ cat /etc/lsb-release
+
+** The steps below and mxe.sh work on Ubuntu 22.04 as at 2024-06
+
 ** See the end for information about rebooting
-**  and updating your Ubuntu to a later version if required
+**  and upgrading your Ubuntu to a later release if required
 
 ** Install git that we use to download some of the required code.
 ** It may already be installed:
@@ -68,10 +73,6 @@ How to cross compile cgminer using MXE on WSL or linux
  cgminer/mxe.sh mxe
  cd mxe/
 
-** The versions of MXE after build-2020-06-06 fail to build cmake on WSL
-** You can skip this line if they ever fix that:
- git checkout build-2020-06-06
-
 ** This compiles the mxe code needed - it can take a few hours in WSL ...
 ** It also downloads each package it needs to build:
  ../cgminer/mxe.sh b
@@ -82,10 +83,10 @@ How to cross compile cgminer using MXE on WSL or linux
  autoreconf -fi
 
 ** Next you must decide what miners you need to support - select as few as
-**  possible e.g. to select just the Gekko USB miners:
- ./mxe.sh c --enable-gekko
+**  possible e.g. to select just the Gekko and Icarus USB miners:
+ ./mxe.sh c --enable-gekko --enable-icarus
 ** If instead you wish to build a debug version of cgminer use:
- ./mxe.sh d --enable-gekko
+ ./mxe.sh d --enable-gekko --enable-icarus
 
 ** Then finally build cgminer:
  ./mxe.sh make
@@ -113,7 +114,7 @@ If Ubuntu ever requires a reboot, in the ubuntu window shutdown ubuntu with:
 
  wsl.exe --terminate $WSL_DISTRO_NAME
 
-When you start Ubuntu from windows it will be the same as if it had rebooted
+When you next start Ubuntu from windows it will be the same as a reboot
 
 ------------------------------
 
