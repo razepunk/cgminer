@@ -638,6 +638,10 @@ and you should be able to see the device in the drop down list as something
 like: "CompacF Bitcoin Miner"
 Choose the install or replace driver option and select WinUSB.
 
+If the USB miner is a composite USB device like the CompacA1, after you
+have selected the "List All Devices" menu option, you might need to disable
+the "Ignore Hubs or Composite Parents" menu option to see the miner.
+
 When you first switch a device over to WinUSB with Zadig and it shows that
 correctly on the left of the Zadig window, but it still gives permission
 errors, you may need to unplug the USB miner and then plug it back in. Some
