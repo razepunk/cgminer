@@ -46,6 +46,7 @@ fi
 # build cgminer
 if [ "$1" = "make" ] ; then
  shift
+ make clean
  PATH="$ho/usr/bin:$PATH" PKG_CONFIG_PATH="$ho/usr/i686-w64-mingw32.static/lib/pkgconfig/" make "$@"
  exit $?
 fi
