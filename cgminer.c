@@ -7351,7 +7351,7 @@ static void *stratum_sthread(void *userdata)
 			int v;
 			for (v = 0; v < 4; v++)
 				bvb[v] = work->data[v] & ~(work->base_bv[v]);
-			__bin2hex(bvhex, bvb, 4);
+			__bin2hex((char *)bvhex, bvb, 4);
 
 			snprintf(s, sizeof(s),
 				 "{\"params\": [\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"%s\"], \"id\": %d, \"method\": \"mining.submit\"}",

@@ -172,7 +172,7 @@ static unsigned char bfcrc(unsigned char *ptr, uint32_t len)
 	unsigned char c = 0;
 	int i;
 
-	for (i = 0; i < len; i++)
+	for (i = 0; i < (int)len; i++)
 		c += ptr[i];
 
 	return c;
@@ -318,7 +318,7 @@ applog(LOG_ERR, "%s() %d: %s %d - SPI resize from %u to %u", __func__,
 			gekko_usleep(info, MS2US(10));
 
 			memset(info->cmd, 0, 64);
-			err = usb_read_timeout(compac, info->cmd, 64, &read_bytes, tmo, C_GETRESULTS);
+			err = usb_read_timeout(compac, (char *)(info->cmd), 64, &read_bytes, tmo, C_GETRESULTS);
 applog(LOG_ERR, " Back: resize res=%d read=%d:", err, read_bytes);
 			if (err != LIBUSB_SUCCESS)
 				return err;
@@ -340,7 +340,7 @@ applog(LOG_ERR, "  %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %
 		off = 4;
 	}
 
-	for (i = 0; i < send_bytes; i++)
+	for (i = 0; i < (int)send_bytes; i++)
 		info->cmd[i+off] = req_tx[i];
 
 	send_bytes += off;
@@ -373,7 +373,7 @@ applog(LOG_ERR, "%s()  [%02x %02x %02x %02x %02x %02x %02x %02x]", __func__,
 	if (getreply || 1)
 	{
 		memset(info->cmd, 0, 64);
-		err = usb_read_timeout(compac, info->cmd, 64, &read_bytes, tmo, C_GETRESULTS);
+		err = usb_read_timeout(compac, (char *)(info->cmd), 64, &read_bytes, tmo, C_GETRESULTS);
 applog(LOG_ERR, " Got back res=%d read=%d:", err, read_bytes);
 		if (err != LIBUSB_SUCCESS)
 			return err;
@@ -398,7 +398,7 @@ applog(LOG_ERR, "  %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %
 
 		off = 4;
 
-		for (i = 0; i < send_bytes; i++)
+		for (i = 0; i < (int)send_bytes; i++)
 			info->cmd[i+off] = req_tx[i+60];
 
 		send_bytes += off;
@@ -410,7 +410,7 @@ applog(LOG_ERR, "  %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %
 		if (getreply)
 		{
 			memset(info->cmd, 0, 64);
-			err = usb_read_timeout(compac, info->cmd, 64, &read_bytes, tmo, C_GETRESULTS);
+			err = usb_read_timeout(compac, (char *)(info->cmd), 64, &read_bytes, tmo, C_GETRESULTS);
 applog(LOG_ERR, " 2nd Got back res=%d read=%d:", err, read_bytes);
 			if (err != LIBUSB_SUCCESS)
 				return err;
@@ -2665,7 +2665,7 @@ applog(LOG_ERR, "DBG checking BF nonces");
 	mutex_lock(&info->lock);
 	info->nonces++;
 	info->nonceless = 0;
-	cur_job_id = info->job_id;
+	cur_job_id = job_id = info->job_id;
 	mutex_unlock(&info->lock);
 
 	nonce ^= BFCL_XOR4;
@@ -3853,8 +3853,8 @@ applog(LOG_ERR, "DBG BF got work");
 				cgtime(&info->last_pool_lost);
 
 			if (cp->stratum_active
-			&&  (info->asic_type == BM1387 || info->asic_type == BM1397)
-			||   info->asic_type == BM1362 || info->asic_type == BFCLAR)
+			&&  (info->asic_type == BM1387 || info->asic_type == BM1397
+			     || info->asic_type == BM1362 || info->asic_type == BFCLAR))
 			{
 				// get Dups instead of sending busy work
 
@@ -3911,7 +3911,7 @@ applog(LOG_ERR, "DBG BF sending work");
 		if (info->ident == IDENT_GSK)
 			mutex_lock(&info->wlock);
 		if (info->asic_type == BFCLAR)
-			err = bf_send(compac, (char *)info->task, task_len, false, false, C_MCP_SPITRANSFER);
+			err = bf_send(compac, info->task, task_len, false, false, C_MCP_SPITRANSFER);
 		else
 		{
 			err = usb_write(compac, (char *)info->task, task_len, &sent_bytes, C_SENDWORK);
@@ -3977,7 +3977,7 @@ applog(LOG_ERR, "DBG BF sending work");
 	return NULL;
 }
 
-static float inline telem_tovin(unsigned char ch)
+static inline float telem_tovin(unsigned char ch)
 {
 	// value 0..255
 	// linear volt 0..6.0
@@ -4754,7 +4754,7 @@ applog(LOG_ERR, " %s %d dump before %d=0xaa [%02x %02x %02x %02x ...]",
 			prelen = len;
 			// a reply followed by only 0xaa but no 0x55 yet
 			if (len == pos
-			&&  (len == (info->rx_len - 1) || len == (info->rx_len + 1))
+			&&  (len == (int)(info->rx_len - 1) || len == (int)(info->rx_len + 1))
 			&&  rx[pos-1] == 0xaa)
 				len--;
 
@@ -4922,7 +4922,7 @@ static void *compac_listengsk(struct cgpu_info *compac, struct COMPAC_INFO *info
 {
 	unsigned char rx[BUFFER_MAX];
 	struct timeval now;
-	int read_bytes, tmo, pos = 0, len, i, prelen, thislen;
+	int read_bytes, tmo, pos = 0, len, i, prelen = 0, thislen;
 	bool okcrc, used, chipped, isnon;
 	K_ITEM *item;
 
@@ -5048,8 +5048,8 @@ applog(LOG_ERR, " %s %d dump before %d=0xaa [%02x %02x %02x %02x ...]",
 			if (isnon)
 			{
 				// need BFCL_NONCERX
-				if (len < BFCL_NONCERX)
-					break;
+				//if (len < BFCL_NONCERX)
+				//	break;
 			}
 			// find next 0xf0 || 0x0f
 			for (len = info->rx_len; len < pos; len++)
@@ -5137,6 +5137,7 @@ applog(LOG_ERR, " [%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x]"
 				break;
 			 default:
 				used = false;
+				okcrc = (bfcrc(rx+2, len-3) == rx[len-1]);
 				if (len == (int)(info->rx_len) && okcrc)
 					used = gsf_reply(info, rx, info->rx_len, &now);
 #if 0

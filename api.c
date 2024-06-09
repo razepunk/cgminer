@@ -4235,7 +4235,7 @@ static void send_result(struct io_data *io_data, SOCKETTYPE c, bool isjson)
 	int count, sendc, res, tosend, len, n;
 	char *buf = io_data->ptr;
 
-	strcpy(buf, io_data->ptr);
+	//strcpy(buf, io_data->ptr);
 
 	if (io_data->close)
 		strcat(buf, JSON_CLOSE);
