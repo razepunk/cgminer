@@ -3470,7 +3470,7 @@ gekko_usleep(info, MS2US(999));
 
 					// asic check-in failed
 					if (!info->lock_freq
-					&&  info->asic_type != BM1397)
+					&&  info->asic_type != BM1397 && info->asic_type != BM1362)
 					{
 						if (ms_tdiff(&asic->last_frequency_ping, &asic->last_frequency_reply) > MS_SECOND_30
 						&&  ms_tdiff(&now, &asic->last_frequency_reply) > MS_SECOND_30)
@@ -6552,8 +6552,8 @@ static struct api_data *compac_api_stats(struct cgpu_info *compac)
 
 	if (info->asic_type == BM1397)
 	{
-	for (i = 0; i < 16; i++)
-	{
+	 for (i = 0; i < 16; i++)
+	 {
 		snprintf(nambuf, sizeof(nambuf), "NonceByte-%1X0", i);
 		buf256[0] = '\0';
 		for (j = 0; j < 16; j++)
@@ -6565,10 +6565,10 @@ static struct api_data *compac_api_stats(struct cgpu_info *compac)
 			snprintf(buf256+len, sizeof(buf256)-len, ".%"PRId64, info->noncebyte[i*16+j]);
 		}
 		root = api_add_string(root, nambuf, buf256+1, true);
-	}
+	 }
 
-	for (i = 0; i < 16; i++)
-	{
+	 for (i = 0; i < 16; i++)
+	 {
 		snprintf(nambuf, sizeof(nambuf), "nb2c-%1X0", i);
 		buf256[0] = '\0';
 		for (j = 0; j < 16; j++)
@@ -6580,7 +6580,7 @@ static struct api_data *compac_api_stats(struct cgpu_info *compac)
 			snprintf(buf256+len, sizeof(buf256)-len, ".%u", info->nb2chip[i*16+j]);
 		}
 		root = api_add_string(root, nambuf, buf256+1, true);
-	}
+	 }
 	}
 
 	root = api_add_uint64(root, "NTimeout", &info->ntimeout, false);
