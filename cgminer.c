@@ -7487,11 +7487,13 @@ static bool setup_gbt_solo(CURL *curl, struct pool *pool)
 		}
 		goto out;
 	}
-	if (opt_btc_address[0] != '1')
-	{
-		applog(LOG_ERR, "Bitcoin address must start with 1");
-		goto out;
-	}
+	/*
+	* if (opt_btc_address[0] != '1')
+	* {
+	*	applog(LOG_ERR, "Bitcoin address must start with 1");
+	*	goto out;
+	* }
+	*/
 	snprintf(s, 256, "{\"id\": 1, \"method\": \"validateaddress\", \"params\": [\"%s\"]}\n", opt_btc_address);
 	val = json_rpc_call(curl, pool->rpc_url, pool->rpc_userpass, s, true,
 			    false, &rolltime, pool, false);
